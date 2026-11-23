@@ -1,0 +1,33 @@
+symbol,sector,industry,currency,price_unit
+XOM,Energy,Oil Gas & Consumable Fuels,USD,USD
+CVX,Energy,Oil Gas & Consumable Fuels,USD,USD
+COP,Energy,Oil Gas & Consumable Fuels,USD,USD
+EOG,Energy,Oil Gas & Consumable Fuels,USD,USD
+OXY,Energy,Oil Gas & Consumable Fuels,USD,USD
+DVN,Energy,Oil Gas & Consumable Fuels,USD,USD
+JPM,Financials,Banks,USD,USD
+BAC,Financials,Banks,USD,USD
+C,Financials,Banks,USD,USD
+WFC,Financials,Banks,USD,USD
+USB,Financials,Banks,USD,USD
+PNC,Financials,Banks,USD,USD
+PG,Consumer Staples,Household Products,USD,USD
+CL,Consumer Staples,Household Products,USD,USD
+KMB,Consumer Staples,Household Products,USD,USD
+CHD,Consumer Staples,Household Products,USD,USD
+CLX,Consumer Staples,Household Products,USD,USD
+KO,Consumer Staples,Beverages,USD,USD
+PEP,Consumer Staples,Beverages,USD,USD
+TXN,Information Technology,Semiconductors,USD,USD
+ADI,Information Technology,Semiconductors,USD,USD
+MCHP,Information Technology,Semiconductors,USD,USD
+INTC,Information Technology,Semiconductors,USD,USD
+QCOM,Information Technology,Semiconductors,USD,USD
+DUK,Utilities,Electric Utilities,USD,USD
+SO,Utilities,Electric Utilities,USD,USD
+AEP,Utilities,Electric Utilities,USD,USD
+XEL,Utilities,Electric Utilities,USD,USD
+ED,Utilities,Electric Utilities,USD,USD
+UNP,Industrials,Ground Transportation,USD,USD
+CSX,Industrials,Ground Transportation,USD,USD
+NSC,Industrials,Ground Transportation,USD,USD

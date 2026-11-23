@@ -1,0 +1,15 @@
+experiment,null_or_truth,replications,rejections,rate,wilson95_low,wilson95_high,share_rank2,mean,bias,sd,share_within_0.05,median,share_within_15pct,power
+"EG 5% test, independent RWs, n=252",H0 true (no cointegration),300,16.0,0.05333333333333334,0.03309162538404202,0.08486983874726851,,,,,,,,
+"EG 5% test, independent RWs, n=1000",H0 true (no cointegration),300,14.0,0.04666666666666667,0.02799867455083086,0.07679803531378282,,,,,,,,
+"EG 5% test, correlated RWs rho=0.8, n=252",H0 true,300,19.0,0.06333333333333334,0.04091655604878176,0.09679203948257407,,,,,,,,
+"EG 5% power, cointegrated hl=5, n=252",H1 true,300,287.0,0.9566666666666667,0.927281870871939,0.9745037963967957,,,,,,,,
+"EG 5% power, cointegrated hl=10, n=252",H1 true,300,166.0,0.5533333333333333,0.4967541991380484,0.6085638349955265,,,,,,,,
+"EG 5% power, cointegrated hl=30, n=252",H1 true,300,29.0,0.09666666666666666,0.06814985592393716,0.13538251094090295,,,,,,,,
+"EG under near-cointegrated null: AR(1) hl=10 sd=0.03 + RW sd=0.003, n=252",H0 true (residual has a unit root),300,114.0,0.38,0.32691781564606526,0.4361166075533913,,,,,,,,
+"EG under near-cointegrated null: AR(1) hl=10 sd=0.03 + RW sd=0.009, n=252",H0 true (residual has a unit root),300,43.0,0.14333333333333334,0.10818417712673664,0.18750146960498146,,,,,,,,
+"Johansen trace 5%, det_order=0, k=1: rank>=1, independent RWs n=252",H0 true (rank 0),300,26.0,0.08666666666666667,0.05982848995477098,0.12395674551002385,0.04,,,,,,,
+"beta recovery (true 1.3), n=2000",beta=1.3,300,,,,,,1.3014029448590074,0.0014029448590073823,0.031208694786417992,0.8933333333333333,,,
+"OU half-life recovery (true 10), n=2000, true noise",half-life=10,300,,,,,,9.898490181066958,-0.10150981893304234,1.2363242304028776,,9.911375407314543,0.78,
+"Variance ratio q=5 robust z, RW t(5) increments n=1000",H0 true,300,17.0,0.056666666666666664,0.03567717591318777,0.08886666535147117,,,,,,,,
+"Variance ratio q=5 homoskedastic z, same data",H0 true,300,20.0,0.06666666666666667,0.04356717679698387,0.10072379586772039,,,,,,,,
+"BH q=0.10, 50 independent one-sided z-tests (10 alt)",FDR <= q*m0/m = 0.08,300,,,,,,0.07560930735930736,,0.08864078222728562,,,,0.8103333333333335

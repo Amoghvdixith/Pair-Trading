@@ -1,0 +1,86 @@
+{
+  "label": "net",
+  "data_mode": "synthetic",
+  "strategy": {
+    "strategy": "pairs",
+    "method": "static_ols",
+    "entry_z": 2.0,
+    "exit_z": 0.0,
+    "stop_z": 3.5,
+    "lookback_mult": 1.5,
+    "label": "net"
+  },
+  "sizer": {
+    "type": "PassThroughSizer"
+  },
+  "constraints": {
+    "max_gross": 1.25,
+    "max_net": 1.0,
+    "max_position": 0.3,
+    "allow_short": true
+  },
+  "costs": {
+    "commission": {
+      "fixed": 0.0,
+      "per_share": 0.0,
+      "rate_bps": 1.0,
+      "minimum": 0.0,
+      "maximum": null
+    },
+    "spread_bps_full": 4.0,
+    "slippage_bps": 1.0,
+    "slippage_stochastic_sd_bps": 0.0,
+    "slippage_seed": null,
+    "impact_coefficient": 0.0,
+    "impact_fallback_bps": 0.0
+  },
+  "execution": {
+    "expires_after": 0,
+    "insufficient_cash": "resize",
+    "max_participation": null,
+    "adv_window": 20,
+    "vol_window": 20
+  },
+  "financing": {
+    "credit_rate": 0.02,
+    "debit_rate": 0.04,
+    "borrow_fee": 0.005,
+    "day_count_basis": 365,
+    "short_proceeds_earn_interest": false
+  },
+  "config": {
+    "initial_cash": 1000000.0,
+    "fractional": false,
+    "rebalance_band": 0.0,
+    "cash_buffer": 0.0,
+    "trade_start": "2017-01-02 00:00:00",
+    "liquidate_on_final_open": true,
+    "universe_exit": "liquidate",
+    "check_accounting": true,
+    "execution_delay": 1
+  },
+  "execution_convention": "signal at close t, fill at next tradable open (t+1)",
+  "data_start": "2016-01-01",
+  "data_end": "2021-12-31",
+  "trade_start": "2017-01-02",
+  "n_symbols": 24,
+  "provenance": {
+    "data_mode": "synthetic",
+    "dataset": "synthetic_fast"
+  },
+  "impact_fallbacks": 0,
+  "insolvent": false,
+  "runtime_seconds": 17.586,
+  "pairs": {
+    "scenario": "net",
+    "flat_bps": 0.0,
+    "backtester_version": "0.1.0",
+    "hedge_method": "static_ols",
+    "notional_rule": "beta_weighted",
+    "pair_fill_model": "non-atomic legs; expires_after=0; unwind on leg failure",
+    "n_cohorts": 19,
+    "n_pairs_planned": 40
+  },
+  "backstop_bound": false,
+  "runtime_seconds_total": 17.925301100010984
+}

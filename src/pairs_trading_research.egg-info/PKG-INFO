@@ -1,0 +1,304 @@
+Metadata-Version: 2.4
+Name: pairs-trading-research
+Version: 0.1.0
+Summary: Educational pairs-trading / statistical-arbitrage research pipeline: cointegration screening with FDR control, OLS/rolling/Kalman hedge ratios, OU diagnostics and an event-driven backtest through the project-02 backtester.
+License-Expression: MIT
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: numpy>=1.26
+Requires-Dist: pandas>=2.1
+Requires-Dist: scipy>=1.11
+Requires-Dist: statsmodels>=0.14
+Requires-Dist: matplotlib>=3.8
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: backtester==0.1.0
+Provides-Extra: kalman-ref
+Requires-Dist: pykalman>=0.9; extra == "kalman-ref"
+Provides-Extra: market
+Requires-Dist: yfinance>=0.2.40; extra == "market"
+Provides-Extra: dev
+Requires-Dist: pytest>=8; extra == "dev"
+Requires-Dist: pytest-cov>=5; extra == "dev"
+Requires-Dist: ruff>=0.5; extra == "dev"
+Requires-Dist: mypy>=1.10; extra == "dev"
+Requires-Dist: pandas-stubs; extra == "dev"
+Requires-Dist: types-PyYAML; extra == "dev"
+Requires-Dist: nbformat>=5.9; extra == "dev"
+Requires-Dist: nbclient>=0.10; extra == "dev"
+Requires-Dist: ipykernel>=6.29; extra == "dev"
+
+# Pairs Trading: Statistical Arbitrage
+
+A research pipeline in Python for pairs trading. It finds same-industry stock pairs with
+cointegration tests and controls for multiple testing. It estimates hedge ratios by
+static OLS, rolling OLS and a hand-written Kalman filter, and fits Ornstein–Uhlenbeck
+half-lives. Both legs are traded through the event-driven backtester from project 02,
+with rolling formation and trading cohorts. Results are reported after costs, out of
+sample, with checks on neutrality and pair stability.
+
+> **This is educational research software. It is not production-ready.** It does not
+> connect to a broker and places no trades. Statistical arbitrage is **not** risk-free
+> arbitrage: pairs stop being cointegrated, spreads widen further, and costs, borrow and
+> financing can turn a stationary spread into a loss. The synthetic results show that
+> the software works as designed. **They are not evidence of market alpha.**
+> **Market-data result: no out-of-sample edge after costs** (see below).
+
+![single pair](results/figures/syn_04_single_pair_price_spread_z.png)
+
+## Status: implemented, tested, executed
+
+| Area | Status |
+|---|---|
+| Synthetic data A–E (cointegrated, independent RWs, correlated RWs, breakdown, time-varying β) and a sector universe with known truth | Implemented, tested, executed |
+| Universe filters (history, gaps, recency, liquidity, currency, optional point-in-time membership) with rejection reasons | Implemented, tested, executed |
+| Engle–Granger (MacKinnon p-values, predeclared orientation, optional Bonferroni over both directions), ADF diagnostics, Johansen (rank 0/1/2, normalised vector) | Implemented, tested, executed |
+| BH and BY FDR per formation date; raw / adjusted / filtered / selected stages kept separate | Implemented, tested, executed; FDP measured against synthetic truth |
+| OU fit (validity statuses, half-life CI), Hurst, Lo–MacKinlay variance ratio | Implemented, tested, executed, null-calibrated |
+| Static OLS, causal rolling OLS, NumPy Kalman (Joseph form), pykalman cross-check | Implemented, tested (pykalman agrees to 1e-8 in tests, ~1e-13 in the example) |
+| Causal z-scores, 6-state signal machine (entry/exit/stop/time stop/breakdown/cool-down/missing data/expiry) | Implemented, tested |
+| β → holdings (beta-weighted or dollar-neutral), rounding audit, admission limits (gross, net, name, sector, pairs per name) | Implemented, tested |
+| Project-02 backtester integration (thin adapter, next-open fills, two-leg confirmation, legging unwind, netting across pairs) | Implemented, tested, executed |
+| Rolling cohorts in one shared account; pair-level P&L reconciled to the account (residual < 1e-8) | Implemented, tested, executed |
+| Metrics, gross vs net, cost sensitivity, threshold grid (validation-tuned + exploratory), neutrality (HAC), stability, cohort audit | Implemented, executed |
+| Optional yfinance market mode | Implemented, **executed** (32 US stocks, 2012–2025) |
+| Locked hold-out with confirm-only evaluation | Implemented, tested; **never evaluated** |
+| Research mode (64 synthetic stocks, monthly cohorts) | Implemented, **not executed** |
+| Distance method, PCA residuals, copulas, regime filters, optimal OU thresholds, intraday | **Not implemented** |
+
+## Installation (Windows PowerShell; macOS/Linux: `source .venv/bin/activate`)
+
+Python 3.11 or later. The project-02 backtester must sit next to this folder
+(`../backtester`). It is installed from a wheel built in a temporary copy: nothing is
+written into the backtester's folder and Git is not used.
+
+```powershell
+python -m venv .venv
+```
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+```powershell
+python scripts/install_local_backtester.py
+```
+```powershell
+python -m pip install -e ".[dev,kalman-ref,market]"
+```
+
+(`--path D:\elsewhere\backtester` points the installer at another location.)
+
+## Commands
+
+| What | Command |
+|---|---|
+| Fast offline demo (everything, synthetic, ~5–10 min) | `python scripts/run_all.py` |
+| Generate synthetic data only | `python scripts/generate_synthetic_data.py` |
+| Screening + stability | `python scripts/run_screening.py` |
+| Single pair | `python scripts/run_single_pair.py` |
+| Portfolio | `python scripts/run_portfolio.py` |
+| Hedge-method comparison | `python scripts/run_hedge_comparison.py` |
+| Costs + threshold grid | `python scripts/run_sensitivity.py` |
+| Market data (optional) | `python scripts/download_market_data.py` then `python scripts/run_all.py --data market` |
+| Larger research mode | `python scripts/run_all.py --mode research` |
+| Rebuild + execute notebooks | `python scripts/build_notebooks.py` |
+| Tests (all / fast only) | `python -m pytest` / `python -m pytest -m "not slow"` |
+| Lint, types | `python -m ruff check src tests scripts` / `python -m mypy` |
+| CLI equivalent | `pairs run-all --data synthetic`, `pairs screen`, `pairs portfolio`, … |
+| Hold-out (deliberately separate) | `python scripts/run_holdout.py --confirm` |
+
+## Results
+
+Every figure carries a stamp at the bottom with data mode, universe, dates, cohort
+design, hedge method, execution convention, costs and sample label. The numbers behind
+each figure are in `results/tables/figure_data/`. Versions, configs, seed, provenance and
+runtimes are in `results/run_metadata.json`.
+
+**Common settings.** 12-month formation and 6-month trading windows with a new cohort
+every quarter (two overlapping cohorts, each limited to half of a 1.0× gross budget).
+Signal at the close, fill at the next open. Net costs per leg: 1 bp commission, half of
+a 4 bp spread, 1 bp slippage; borrow 0.5%/yr; cash 2%, debit 4%. Sharpe is computed on
+excess returns over the 2% cash rate (gross: rf = 0).
+
+### Synthetic (24 stocks, 4 sectors, one pure-null sector). OOS test 2017–2021, a-priori thresholds
+
+| | Gross | Net |
+|---|---|---|
+| CAGR (net includes ~2% cash interest) | 3.8% | 5.4% |
+| Sharpe | 2.09 | 1.87 |
+| Max drawdown | 1.4% | 1.0% |
+| Avg gross exposure / time invested | 0.12 / 57% | 0.12 / 57% |
+| Completed pair trades / avg holding | 158 / 9.2 sessions | 158 / 9.2 sessions |
+| Trading costs / borrow | 0 | 16.8k / 1.9k (on 1M) |
+| Market beta (HAC 95% CI) | | −0.006 [−0.013, 0.001] |
+
+![equity](results/figures/syn_08_equity_gross_net.png)
+![tearsheet](results/figures/syn_10_tearsheet.png)
+
+### Market (32 US large caps, 7 industries, yfinance adjusted). OOS test 2018–2023, a-priori thresholds
+
+| | Gross | Net |
+|---|---|---|
+| CAGR | −0.2% | 1.7% (below the 2% cash rate) |
+| Sharpe | −0.31 | **−0.47** |
+| Max drawdown | 2.1% | 1.3% |
+| Completed pair trades / hit rate | 32 / 50% | 32 / 50% |
+| Avg gross exposure | 0.03 | 0.03 |
+| Market beta (HAC 95% CI) | | +0.003 [−0.001, 0.006] |
+
+![market equity](results/figures/mkt_08_equity_gross_net.png)
+
+### Screening funnel and FDR
+
+| | candidates | raw EG p<0.05 | BH q=0.10 | + filters | selected | dates with no pair |
+|---|---|---|---|---|---|---|
+| Synthetic (34 dates) | 1,845 | 454 | 199 | 190 | 96 | 7 |
+| Market (42 dates) | 2,688 | 232 (8.6%) | 39 | 38 | 27 | 24 |
+
+With known synthetic truth, the mean false-discovery proportion was **0.50 raw, 0.29
+BH, 0.10 BY**. BY power was only 3.8%, against 22% for BH. In other words, BH at q = 0.10
+did **not** control FDR here (see "What did not work").
+
+![funnel](results/figures/syn_02_screening_funnel.png)
+
+### Hedge methods (same cohorts and dates, net)
+
+| | Static OLS | Rolling OLS (60d, t−1) | Kalman (δ by formation likelihood) |
+|---|---|---|---|
+| Synthetic Sharpe / trades / turnover | 1.87 / 158 / 3.4× | 1.60 / 98 / 2.3× (187 re-hedges) | 1.00 / 7 / 0.2× |
+| Market Sharpe / trades | −0.47 / 32 | −0.29 / 25 | −0.54 / 3 |
+| Median nominal ADF p of trading-window spreads, syn / mkt | 0.19 / 0.62 | 0.07 / 0.28 | 0.0008 / 0.003 |
+
+The Kalman spreads look "most stationary" but produced the fewest trades: the filter
+absorbs divergence. ADF p-values on adaptive spreads are not valid tests.
+
+![hedge paths](results/figures/syn_05_hedge_ratio_paths.png)
+![Kalman example](results/figures/syn_05b_kalman_time_varying_beta.png)
+
+### Cost sensitivity (flat one-way bps per leg **replacing** commission, spread and slippage; borrow and financing unchanged)
+
+| bps | 0 | 5 | 10 | 20 |
+|---|---|---|---|---|
+| Synthetic Sharpe | 2.02 | 1.83 | 1.64 | 1.25 |
+| Market Sharpe | −0.37 | −0.50 | −0.63 | −0.88 |
+
+### Threshold grid (static OLS)
+
+Tuned on VALIDATION cohorts only. Each choice was evaluated once out of sample. The full
+outer-test grid is EXPLORATORY and was not used for the choice. 28 trials per data mode
+are logged in `results/logs/trial_registry.jsonl`.
+
+| | chosen on validation | validation Sharpe | OOS Sharpe of that choice | OOS Sharpe, a-priori (2.0/0) |
+|---|---|---|---|---|
+| Synthetic | entry 1.5, exit 0.25 | 1.98 | 2.11 | 1.87 |
+| Market | entry 2.5, exit 0 | 0.96 | **−0.22** | −0.47 |
+
+![validation heatmap](results/figures/syn_13_threshold_heatmap_validation.png)
+![market exploratory heatmap](results/figures/mkt_13b_threshold_heatmap_EXPLORATORY_test.png)
+
+### Stability of selected pairs
+
+| | re-selected in next cohort (overlapping windows) | EG p<0.05 in next **non-overlapping** 12 months | median half-life, formation → forward |
+|---|---|---|---|
+| Synthetic | 25% | 34% | 5.4 → 9.1 |
+| Market | 12% | 8% | 5.3 → 18.9 |
+
+![stability](results/figures/mkt_17_pair_stability.png)
+
+Other figures: `*_06_ou_fit_half_life`, `*_07_entries_exits_fills`, `*_09_drawdown`,
+`*_11_cost_decomposition`, `*_12_cost_sensitivity`, `*_14_hedge_method_comparison`,
+`*_16_rolling_beta_exposure`, `*_18_holding_and_trade_pnl`, `*_19_cohort_exposure_audit`,
+`syn_01_cointegrated_vs_not`. Tables: `results/tables/` (see `docs/data_dictionary.md`),
+including `syn_00_calibration.csv` and `20_what_did_not_work.csv`.
+
+## What did not work (generated in `results/tables/20_what_did_not_work.csv`)
+
+1. **No market edge.** OOS net excess Sharpe was −0.47 (static OLS), −0.29 (rolling) and
+   −0.54 (Kalman). Gross was negative too, so this is not only a cost problem.
+2. **Validation tuning did not transfer** on market data (0.96 → −0.22). The
+   lookback-multiple grid was inert because every half-life put the window at its
+   20-session floor.
+3. **FDR was not controlled** on the synthetic universe (BH mean FDP 0.29 at q = 0.10).
+   The EG test rejected 14–38% at nominal 5% when the null was "nearly cointegrated".
+4. **Pairs did not stay cointegrated.** Only 8% (market) and 34% (synthetic) of selected
+   pairs rejected no-cointegration in the following year. Half-lives lengthened.
+5. **The Kalman filter did not beat OLS.** Innovation |z| ≥ 2 occurred on only 0.2–2.3%
+   of pair-days.
+6. **The 3.5σ stop never fired** for static OLS. Even with a 20-session window it is
+   rarely reachable. A first version with a 10-session floor made it *impossible*
+   (|z| ≤ 2.85). This was found and fixed after results had been seen, and is disclosed in
+   `docs/bias_controls.md`.
+7. **Capital was under-used** (average gross 12% synthetic, 3% market).
+8. **24 of 42 market formation dates selected nothing.** The account stayed in cash,
+   which is a valid outcome.
+
+## Plain-English explanations
+
+* **Correlation vs cointegration.** Correlated returns mean two prices move together day
+  to day. Cointegration means the *gap* between the prices keeps getting pulled back.
+  Example C has 0.79 return correlation and no cointegration.
+* **Why residual tests need different critical values.** The regression picks the
+  coefficients that make the residual as flat as possible, so even unrelated series look
+  "stationary-ish". Stricter (more negative) cut-offs correct for that.
+* **What FDR does and does not control.** Among the pairs you call discoveries *on one
+  date*, BH keeps the *expected share* of false ones at or below q, if the p-values are
+  valid. It does not cover repeated screens, it does not fix bad p-values, and it says
+  nothing about profitability.
+* **OU half-life.** The time it takes for a typical gap to shrink by half
+  (ln 2 / speed of mean reversion).
+* **Filtering vs smoothing.** A filter uses data up to today. A smoother also uses future
+  data, which is fine for describing the past and cheating for trading.
+* **Why log-price β is not a share ratio.** β links percentage moves. To hedge, short β
+  dollars of B per dollar of A, which is β·P_A/P_B shares.
+* **Dollar vs market neutrality.** Equal long and short dollars is not zero market beta
+  when the two stocks have different betas. A β-weighted hedge is not dollar-neutral
+  unless β = 1.
+* **A stationary spread can still lose money.** Costs, gaps at the open, borrow, too-slow
+  reversion (time stops), and breaks that happen exactly while you hold the position.
+* **Why dynamic hedge ratios create turnover.** Every change in β means trading shares
+  of the second leg, and each trade pays costs (187 re-hedges for rolling OLS).
+* **Shorting and financing.** The short leg pays a borrow fee, and short proceeds may not
+  earn interest. Long cash earns interest, so "net" returns must be read against cash.
+* **No pairs or negative OOS results are valid findings.** Forcing trades or retuning
+  until something works would make the reported numbers meaningless.
+
+## Data provenance
+
+* **Synthetic:** `pairs.data.generate_universe`, seed 20261122, labelled SYNTHETIC
+  everywhere. The generating truth is saved next to the data.
+* **Market:** Yahoo Finance via yfinance 1.8.0, retrieved 2026-11-22 (UTC timestamp in
+  `data/market/market_us.meta.json`), 2012-01-03 to 2025-12-31. OHLC are split- and
+  dividend-adjusted. USD only. Industry labels were assigned by the author from current
+  classifications (not point-in-time). **Survivorship bias is present.** The cache is
+  for local research; do not redistribute provider data.
+
+## Bias safeguards (details in `docs/bias_controls.md`)
+
+Formation-only screening (asserted and tested by mutating future data). A point-in-time
+view inside the backtester. Next-open fills. A filter-only Kalman tuned on formation
+data. Predeclared orientation with one p-value per pair. FDR per formation date. Trial
+registry. Validation/OOS/exploratory labels. A locked, physically removed hold-out. One
+shared account for overlapping cohorts. One post-hoc design revision, disclosed.
+
+## Quality checks (this machine, Python 3.14.4, Windows 11)
+
+* `pytest`: **61 passed**, 0 failed, 0 skipped, including 2 slow null-calibration tests.
+* Coverage: 66% overall. Core modules 85–98%; the experiment orchestrator (15%) and plot
+  helpers (48%) are exercised by the pipeline runs, not by unit tests.
+* `ruff`: all checks passed.
+* `mypy`: **149 errors remain**, mainly pandas-stubs strictness (`.at[]` scalar
+  unions, `**kwargs` inference, `np.log(DataFrame)` typing). They are not resolved; none
+  that I inspected was a runtime defect, but not all were inspected.
+* The backtester's own test suite: 93 passed against the installed wheel.
+
+## Documentation
+
+`docs/methodology.md`, `docs/statistical_validation.md` (corrections to the guide and
+sources), `docs/hedge_to_holdings.md`, `docs/backtester_integration.md` (change
+requests for project 02), `docs/bias_controls.md`, `docs/data_dictionary.md`,
+`docs/limitations.md`, `docs/interview_notes.md`. Notebooks in `notebooks/` are executed
+and call package functions only.
+
+## Disclaimer
+
+This project is for education and research only. It is not investment advice and makes
+no claim that any strategy is profitable. Past and simulated performance does not
+predict future results.

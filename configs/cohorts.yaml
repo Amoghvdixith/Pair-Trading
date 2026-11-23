@@ -1,0 +1,9 @@
+# Rolling formation / trading cohorts (Gatev-Goetzmann-Rouwenhorst style)
+formation_months: 12
+trading_months: 6
+step_months: 3                  # fast mode; research mode overrides to 1
+# Each cohort receives 1 / (number of cohorts that can overlap) of the gross budget,
+# inside ONE shared account (no cohort gets its own copy of the capital).
+capital_rule: equal_overlap_share
+duplicate_pair_rule: skip       # a pair live in an earlier cohort is not admitted again
+expiry: liquidate_next_open     # cohort targets go to zero at the last trading-window close

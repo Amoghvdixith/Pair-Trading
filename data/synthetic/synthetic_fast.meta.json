@@ -1,0 +1,40 @@
+{
+  "data_mode": "synthetic",
+  "generator": "pairs.data.generate_universe",
+  "spec": {
+    "start": "2012-01-02",
+    "end": "2023-12-29",
+    "n_sectors": 4,
+    "stocks_per_sector": 6,
+    "seed": 20261122,
+    "market_vol": 0.01,
+    "market_drift": 0.0003,
+    "sector_vol": 0.008,
+    "noise_sd_range": [
+      0.02,
+      0.035
+    ],
+    "half_life_range": [
+      3.0,
+      20.0
+    ],
+    "idio_vol": 0.009,
+    "overnight_share": 0.3,
+    "sector_names": [
+      "Energy",
+      "Banks",
+      "Miners",
+      "Retail",
+      "Utilities",
+      "Telecom",
+      "Rail",
+      "Insurers"
+    ]
+  },
+  "price_adjustment": "none (synthetic); prices are exp(log-price model)",
+  "currency": "USD (synthetic label)",
+  "ohlc_model": "Brownian-bridge open between consecutive closes; see pairs.data",
+  "classification_retrieved": "synthetic labels, fixed at generation",
+  "point_in_time_membership": "all symbols listed for the whole sample",
+  "warning": "SYNTHETIC DATA - demonstrates software behaviour, not market alpha"
+}

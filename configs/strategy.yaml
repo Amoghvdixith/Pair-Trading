@@ -1,0 +1,63 @@
+# Pair signal, hedge and execution settings (frozen within each trading cohort).
+
+hedge:
+  method: static_ols            # static_ols | rolling_ols | kalman
+  rolling_window: 60            # rolling OLS: estimated on [t-W, t-1] (current obs EXCLUDED)
+  kalman:
+    delta_grid: [1.0e-7, 1.0e-6, 1.0e-5, 1.0e-4]   # tuned on formation data by likelihood
+    prior_var_alpha: 1.0
+    prior_var_beta: 1.0
+  rehedge_threshold: 0.10       # rebalance leg B when |beta_t/beta_entry - 1| > threshold
+                                # (rolling/kalman only; static never changes)
+
+signals:
+  zscore_lookback_mult: 1.5     # static OLS: rolling window = mult * half-life ...
+  zscore_lookback_min: 20       # ... clipped to [min, max] sessions.  Design revision 1:
+                                # was 10, but |z| <= (L-1)/sqrt(L) = 2.85 at L=10 made the
+                                # 3.5 stop (and entry 3.0) unattainable.  See docs/bias_controls.md
+  zscore_lookback_max: 60
+  # z_t always uses s_{t-L+1..t}: the current COMPLETED close is included (fixed convention;
+  # pairs.signals.rolling_zscore(include_current=False) exists for research use)
+  entry_z: 2.0
+  exit_z: 0.0                   # long spread exits when z >= -exit_z; short when z <= exit_z
+  stop_z: 3.5                   # |z| >= stop_z: close and suspend for rest of the window
+  entry_mode: exceed            # exceed: |z| >= entry_z | cross: threshold crossed this bar
+  time_stop_halflives: 3.0      # close when held > 3 * formation half-life ...
+  time_stop_min: 5              # ... clipped to [min, max] sessions
+  time_stop_max: 120
+  cooldown: 5                   # sessions after an exit before re-entry
+  max_missing: 3                # consecutive missing closes tolerated while a trade is open
+  breakdown:
+    enabled: true
+    every: 21                   # check frequency (sessions)
+    lookback: 252               # trailing sessions (data up to and including t)
+    pvalue: 0.20                # EG p-value above this -> close and suspend (heuristic)
+
+sizing:
+  notional_rule: beta_weighted  # beta_weighted (spread hedge) | dollar_neutral
+  risk_budget_daily: 0.0015     # target daily P&L vol per pair, fraction of equity
+  pair_gross_floor: 0.02        # fraction of equity
+  pair_gross_cap: 0.15
+
+constraints:
+  portfolio_gross_cap: 1.0      # sum |w| (1.0 = no margin borrowing)
+  net_cap: 0.20                 # |sum w|
+  name_cap: 0.15                # |w| per stock (aggregated over pairs and cohorts)
+  sector_gross_cap: 0.50        # sum |w| per sector
+  max_pairs_per_name: 2         # across all live cohorts
+
+execution:
+  fill_convention: next_open    # backtester: signal at close t, fill at open t+1
+  expires_after: 0              # unfilled leg cancels at the first eligible open
+  leg_failure_policy: unwind    # unwind any filled leg at the next eligible open
+
+costs:                          # detailed model (default "net" scenario)
+  commission_bps: 1.0
+  spread_bps_full: 4.0          # full quoted spread; half paid per fill
+  slippage_bps: 1.0
+financing:
+  credit_rate: 0.02             # on positive cash excluding short proceeds
+  debit_rate: 0.04
+  borrow_fee: 0.005             # annual, on |short market value| (general collateral)
+  short_proceeds_earn_interest: false
+initial_cash: 1000000

@@ -1,0 +1,41 @@
+# Formation-window screening.  Every rule here is fixed BEFORE any test result is seen.
+
+price_transform: log            # log (default; beta = elasticity) | raw (beta = share ratio)
+
+universe:
+  min_history_frac: 0.95        # observed closes / formation sessions (per symbol)
+  max_consecutive_missing: 5    # longest allowed run of missing sessions in formation
+  require_last_obs_within: 3    # last observation must be within N sessions of the cutoff
+  min_median_dollar_volume: 5.0e6   # median(close*volume) over the formation window
+  currency: USD                 # one currency only; other currencies are rejected
+  candidate_rule: same_industry # same_industry | same_sector
+
+engle_granger:
+  orientation_rule: alphabetical  # alphabetical | max_variance  (decided before testing)
+  direction_policy: predeclared   # predeclared: one p-value per pair (default)
+                                  # both_bonferroni: p_pair = min(1, 2*min(p_xy, p_yx))
+  trend: c                        # constant in the cointegrating regression
+  autolag: aic                    # ADF lag selection on the residual regression
+  maxlag: null                    # null -> statsmodels default 12*(n/100)^(1/4)
+  collinearity_tol: 1.0e-10       # 1 - R^2 below this = degenerate (perfect fit)
+
+johansen:                       # complementary diagnostic only (never in the FDR family)
+  det_order: 0                  # constant term (statsmodels coint_johansen convention)
+  k_ar_diff: 1                  # lagged differences in the VECM
+  signif: 0.05                  # 0.10 | 0.05 | 0.01 (tabulated critical values)
+
+fdr:
+  method: bh                    # bh (Benjamini-Hochberg) | by (Benjamini-Yekutieli)
+  q: 0.10                       # target FDR per formation date (per family)
+
+filters:                        # economic and mean-reversion filters AFTER FDR
+  half_life_min: 2.0            # trading days (heuristic, configurable)
+  half_life_max: 60.0
+  beta_min: 0.2                 # predeclared beta policy: outside -> pair rejected
+  beta_max: 5.0
+  min_zero_crossings: 6         # spread sign changes in formation (around its mean)
+
+selection:
+  max_pairs: 10
+  one_pair_per_stock: true
+  rank_by: eg_pvalue            # eg_pvalue | half_life

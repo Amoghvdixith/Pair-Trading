@@ -1,0 +1,13 @@
+data_mode,finding,evidence
+synthetic,BH at q=0.10 did not control the realised false-discovery proportion,"mean FDP BH 0.29, raw 0.50, BY 0.10 (BY power 3.8% vs BH 22.1%); EG p-values are anti-conservative under near-cointegrated nulls (see calibration)"
+synthetic,EG size distortion when the null is 'nearly cointegrated',"AR(1) hl=10 sd=0.03 + RW sd=0.003, n=252: 38.0%; AR(1) hl=10 sd=0.03 + RW sd=0.009, n=252: 14.3%"
+synthetic,Low power of 12-month EG tests for slow mean reversion,cointegrated hl=5: 96%; cointegrated hl=10: 55%; cointegrated hl=30: 10%
+synthetic,Kalman filter did not outperform static OLS and traded rarely,"net Sharpe static 1.87 / rolling 1.60 / Kalman 1.00; Kalman trades 7, share of pair-days with |innovation z|>=entry 0.2%"
+synthetic,Validation-selected thresholds vs out-of-sample,"chosen {'entry_z': 1.5, 'exit_z': 0.25, 'lookback_mult': 1.0} with validation Sharpe 1.98; single OOS evaluation Sharpe 2.11; lookback multiples were inert (all hit the 20-session floor): [{'lookback_mult': 1.0, 'sharpe': 1.9838725444335732}, {'lookback_mult': 1.5, 'sharpe': 1.9838725444335732}, {'lookback_mult': 2.0, 'sharpe': 1.9838725444335732}]"
+synthetic,Selected pairs often did not stay cointegrated,re-selected next cohort 25% (overlapping); EG p<0.05 on next non-overlapping 12m 34%; median half-life 5.4 -> 9.1 sessions
+synthetic,"Headline OOS portfolio (static OLS, a-priori thresholds)","net excess Sharpe 1.87, gross Sharpe 2.09, net CAGR 5.40% (includes 2% cash interest), avg gross exposure 0.12, stop-loss exits 0"
+market,Kalman filter did not outperform static OLS and traded rarely,"net Sharpe static -0.47 / rolling -0.29 / Kalman -0.54; Kalman trades 3, share of pair-days with |innovation z|>=entry 2.3%"
+market,Validation-selected thresholds vs out-of-sample,"chosen {'entry_z': 2.5, 'exit_z': 0.0, 'lookback_mult': 1.0} with validation Sharpe 0.96; single OOS evaluation Sharpe -0.22; lookback multiples were inert (all hit the 20-session floor): [{'lookback_mult': 1.0, 'sharpe': 0.9606480712990195}, {'lookback_mult': 1.5, 'sharpe': 0.9606480712990195}, {'lookback_mult': 2.0, 'sharpe': 0.9606480712990195}]"
+market,Selected pairs often did not stay cointegrated,re-selected next cohort 12% (overlapping); EG p<0.05 on next non-overlapping 12m 8%; median half-life 5.3 -> 18.9 sessions
+market,"Headline OOS portfolio (static OLS, a-priori thresholds)","net excess Sharpe -0.47, gross Sharpe -0.31, net CAGR 1.72% (includes 2% cash interest), avg gross exposure 0.03, stop-loss exits 0"
+market,Most market formation dates selected no pair,24 of 42 formation dates; raw EG rejections 232/2688 = 8.6% (5% expected under the null)
